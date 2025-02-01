@@ -15,8 +15,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/codechrono.git
-   cd codechrono
+   git clone https://github.com/makalin/CodeChrono.git
+   cd CodeChrono
    ```
 
 2. Install dependencies:
