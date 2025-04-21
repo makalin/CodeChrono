@@ -1,4 +1,4 @@
-# CodeChrono
+# ⏱️ CodeChrono
 
 **CodeChrono** is an advanced coding time tracker designed to help developers understand and optimize their workflow. By monitoring file changes, CodeChrono provides detailed insights into your coding habits, enabling better time management and productivity.
 
