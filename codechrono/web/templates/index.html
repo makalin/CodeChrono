@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeChrono Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8">CodeChrono Dashboard</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Summary Cards -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Activity Summary</h2>
+                <div id="summary-stats" class="space-y-2">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Activity Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Activity Over Time</h2>
+                <canvas id="activity-chart"></canvas>
+            </div>
+            
+            <!-- File Activity -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">File Activity</h2>
+                <div id="file-activity" class="space-y-2">
+                    <!-- File activity will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display summary data
+        fetch('/api/summary')
+            .then(response => response.json())
+            .then(data => {
+                const summaryStats = document.getElementById('summary-stats');
+                summaryStats.innerHTML = `
+                    <p class="text-gray-600">Total Files: <span class="font-semibold">${data.total_files}</span></p>
+                    <p class="text-gray-600">Total Events: <span class="font-semibold">${data.total_events}</span></p>
+                `;
+            });
+
+        // Fetch and display activity data
+        fetch('/api/activity')
+            .then(response => response.json())
+            .then(data => {
+                // Process data for chart
+                const dates = {};
+                Object.values(data).forEach(events => {
+                    events.forEach(event => {
+                        const date = event.timestamp.split('T')[0];
+                        dates[date] = (dates[date] || 0) + 1;
+                    });
+                });
+
+                // Create chart
+                const ctx = document.getElementById('activity-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(dates),
+                        datasets: [{
+                            label: 'Daily Activity',
+                            data: Object.values(dates),
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Display file activity
+                const fileActivity = document.getElementById('file-activity');
+                const fileStats = {};
+                Object.entries(data).forEach(([file, events]) => {
+                    fileStats[file] = events.length;
+                });
+
+                const sortedFiles = Object.entries(fileStats)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5);
+
+                fileActivity.innerHTML = sortedFiles
+                    .map(([file, count]) => `
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 truncate">${file}</span>
+                            <span class="font-semibold">${count}</span>
+                        </div>
+                    `)
+                    .join('');
+            });
+    </script>
+</body>
+</html> 
